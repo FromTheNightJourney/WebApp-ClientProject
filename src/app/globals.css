@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #7e7e7e;
-  --foreground: #7e7e7e;
+  --background: #fff;
+  --foreground: #000;
+  --one: #18181b;
+  --two: #27272a;
+  --three: #3f3f46;
+  --four: #52525b;
+  --five: #fff;
+  --six: #d4d4d8;
+  --seven: #e4e4e7;
+  --eight: #fafafa;
 }
 
 @theme inline {
@@ -10,17 +18,79 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-one: var(--one);
+  --color-two: var(--two);
+  --color-three: var(--three);
+  --color-four: var(--four);
+  --color-five: var(--five);
+  --color-six: var(--sixe);
+  --color-seven: var(--seven);
+  --color-eight: var(--eight);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.light {
+  --background: #fff;
+  --foreground: #000;
+  --one: #18181b;
+  --two: #27272a;
+  --three: #3f3f46;
+  --four: #52525b;
+  --five: #fff;
+  --six: #d4d4d8;
+  --seven: #e4e4e7;
+  --eight: #fafafa;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.dark {
+  --background: #000;
+  --foreground: #fff;
+  --test: #fff;
+  --one: #e4e4e7;
+  --two: #d4d4d8;
+  --three: #fff;
+  --four: #52525b;
+  --five: #3f3f46;
+  --six: #27272a;
+  --seven: #18181b;
+  --eight: #09090b;
+}
+
+/* Dark mode toggle button styles */
+.dark-mode-toggle {
+  background: none;
+  border: 2px solid currentColor;
+  border-radius: 20px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.dark-mode-toggle:hover {
+  opacity: 0.8;
+}
+
+.dark-mode-toggle .toggle-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.dark-mode-toggle .toggle-icon.sun {
+  display: block;
+}
+
+.dark-mode-toggle .toggle-icon.moon {
+  display: none;
+}
+
+body.dark-mode .dark-mode-toggle .toggle-icon.sun {
+  display: none;
+}
+
+body.dark-mode .dark-mode-toggle .toggle-icon.moon {
+  display: block;
 }

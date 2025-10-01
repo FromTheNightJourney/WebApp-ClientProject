@@ -9,7 +9,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="flex flex-col min-h-screen bg-white text-zinc-800">
+      <body className="flex flex-col min-h-screen bg-seven">
         <Header />
 
         <main className='flex-grow'>
