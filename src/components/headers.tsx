@@ -44,7 +44,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-five  text-two  p-4 border-b-3 border-one ">
       <div className="relative flex justify-end items-center">
         <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">LaTrobe University Learning Management Website</div>
-        <div className="text-lg font-semibold">22586532</div>
+        <div className="text-lg font-semibold">22586526</div>
       </div>
 
       <hr className="my-3 border-two " />
