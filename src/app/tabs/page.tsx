@@ -14,17 +14,20 @@ export default function TabsGeneratorPage() {
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [exportableHtml, setExportableHtml] = useState<string>('');
   const [isCopyNotificationVisible, setCopyNotificationVisible] = useState<boolean>(false);
-  
   const [menuProps, setMenuProps] = useState<{ id: number | null, top: number, right: number, position: 'top' | 'bottom' }>({ id: null, top: 0, right: 0, position: 'bottom' });
-  
   const [modalState, setModalState] = useState<{ type: 'rename' | 'delete' | null, tab: TabItem | null }>({ type: null, tab: null });
   const [newTitle, setNewTitle] = useState('');
-  
   const [isDeleteAllConfirmModalOpen, setDeleteAllConfirmModalOpen] = useState<boolean>(false);
 
+  // refs to grab specific html elements directly, like editor and pop-up menu
   const editorRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  // automation handles
+  // - close the menu when clicking away
+  // - load saved tabs from storage when page opens
+  // - saving tabs back to storage whenever changing
+  // - updating the editor's content when switch tabs
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -92,6 +95,7 @@ export default function TabsGeneratorPage() {
     }
   }, [activeTabId, tabItems]);
 
+  // all the functions for handling user actions like adding, renaming, and deleting tabs
   const handleToggleMenu = (tabId: number, target: HTMLButtonElement) => {
     if (menuProps.id === tabId) {
       setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' });
@@ -190,6 +194,7 @@ export default function TabsGeneratorPage() {
     );
   };
 
+  // main function that builds the final, downloadable html file
   const generateExportHtml = () => {
     const s = {
       body: `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px;`,
@@ -208,12 +213,10 @@ export default function TabsGeneratorPage() {
         const activeTabStyle = 'background-color: #fff; border-color: #d1d5db; border-bottom-color: #fff; position: relative; top: 1px;';
 
         function switchTab(clickedTab) {
-          // Hide all panels and reset all tab styles
           tabPanels.forEach(panel => {
             panel.style.display = 'none';
           });
           tabs.forEach(tab => {
-            // Combine original style with inactive style
             tab.setAttribute('style', '${s.tabLink}' + inactiveTabStyle);
           });
 
@@ -221,9 +224,7 @@ export default function TabsGeneratorPage() {
           const targetPanel = document.getElementById(targetPanelId);
           
           if (targetPanel) {
-            // Apply active styles to the clicked tab
             clickedTab.setAttribute('style', '${s.tabLink}' + activeTabStyle);
-            // Show the target panel
             targetPanel.style.display = 'block';
           }
         }
@@ -234,7 +235,6 @@ export default function TabsGeneratorPage() {
           });
         });
 
-        // Initialize the first tab as active
         if (tabs.length > 0) {
           switchTab(tabs[0]);
         }
@@ -281,6 +281,7 @@ export default function TabsGeneratorPage() {
 
   return (
     <div className="container min-w-full px-10 p-4">
+      {/* the main three-column layout: tabs list, content editor, and html output */}
       <main className="flex h-full justify-between items-start space-x-4">
         <div className="w-1/3 max-w-60 bg-hover p-4 rounded-lg shadow-md flex flex-col border border-shade">
           <div className="flex justify-between items-center sticky top-0 bg-hover pb-2 z-1">
@@ -336,6 +337,7 @@ export default function TabsGeneratorPage() {
             className="flex-grow p-2 border border-shade rounded-md overflow-auto focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
+        
         <div className="flex flex-1 max-h-[calc(100vh-120px)] flex-col w-1/3 h-full bg-hover text-primary p-4 pt-3 rounded-lg shadow-md border border-shade">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-xl font-bold">Generated HTML Code</h2>
@@ -360,6 +362,7 @@ export default function TabsGeneratorPage() {
         </div>
       </main>
 
+      {/* options menu, notifs, confirmation modals */}
       {menuProps.id !== null && (() => {
         const tab = tabItems.find(t => t.id === menuProps.id);
         if (!tab) return null;
