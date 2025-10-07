@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import Cookies from 'js-cookie';
 
 export default function Header() {
   const pathname = usePathname();
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for hamburger menu
+  const menuRef = useRef<HTMLDivElement>(null); // Ref to detect clicks outside the menu
 
   const navLinks = [
     { name: "Tabs", href: "/tabs" },
@@ -14,16 +17,34 @@ export default function Header() {
     { name: "Escape Room", href: "/escape-room" },
     { name: "Coding Races", href: "/coding-races" },
   ];
+  
+  // A single array for all navigation items in the dropdown
+  const allNavLinks = [
+    { name: "Tabs", href: "/tabs" },
+    { name: "Pre-lab Questions", href: "/prelab" },
+    { name: "Escape Room", href: "/escape-room" },
+    { name: "Coding Races", href: "/coding-races" },
+    { name: "About", href: "/about" },
+  ];
 
-  // Dark mode functionality
   useEffect(() => {
-    // Check localStorage for saved theme preference
+    const isMainNavLink = navLinks.some(link => link.href === pathname);
+    
+    if (isMainNavLink) {
+      Cookies.set('lastVisitedPage', pathname, { expires: 365 });
+    }
+  }, [pathname, navLinks]); 
+
+  // Dark mode initialization
+  useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
     
     if (prefersDark) {
-      document.body.classList.add('dark-mode');
+      document.documentElement.className = 'dark';
       setIsDarkMode(true);
+    } else {
+      document.documentElement.className = 'light';
     }
   }, []);
 
@@ -40,14 +61,27 @@ export default function Header() {
     }
   };
 
+  // Effect to close menu when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuRef]);
+
   return (
-    <header className="sticky top-0 z-50 bg-five  text-two  p-4 border-b-3 border-one ">
+    <header className="sticky top-0 z-50 bg-five text-two p-4 border-b-3 border-one">
       <div className="relative flex justify-end items-center">
         <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">LaTrobe University Learning Management Website</div>
         <div className="text-lg font-semibold">22586526</div>
       </div>
 
-      <hr className="my-3 border-two " />
+      <hr className="my-3 border-two" />
 
       <div className="flex justify-between items-center">
         <nav className="flex space-x-4">
@@ -58,33 +92,31 @@ export default function Header() {
                 className={`
                   py-1 border-b-2 transition-colors duration-300
                   ${pathname === link.href
-                    ? "text-one  border-one dark:border-white font-semibold"
-                    : "text-two  border-transparent hover:text-one  hover:border-six "
+                    ? "text-one border-one dark:border-white font-semibold"
+                    : "text-two border-transparent hover:text-one hover:border-six"
                   }
                 `}
               >
                 {link.name}
               </Link>
-              {index < navLinks.length - 1 && <span className="text-two  ml-4">|</span>}
+              {index < navLinks.length - 1 && <span className="text-two ml-4">|</span>}
             </div>
           ))}
         </nav>
         <div className="flex items-center space-x-4">
-          {/* Updated this Link component */}
           <Link
             href="/about"
             className={`
               py-1 border-b-2 transition-colors duration-300
               ${pathname === '/about'
-                ? "text-one  border-one dark:border-white font-semibold"
-                : "text-two  border-transparent hover:text-one  hover:border-six "
+                ? "text-one border-one dark:border-white font-semibold"
+                : "text-two border-transparent hover:text-one hover:border-six"
               }
             `}
           >
             About
           </Link>
           
-          {/* Dark Mode Toggle Button */}
           <button
             onClick={toggleDarkMode}
             className="dark-mode-toggle"
@@ -100,11 +132,44 @@ export default function Header() {
             <span className="ml-1">{isDarkMode ? 'Dark' : 'Light'}</span>
           </button>
           
-          <div className="cursor-pointer">
-            <div className="space-y-1">
-              <div className="w-6 h-1 bg-two "></div>
-              <div className="w-6 h-1 bg-two "></div>
-              <div className="w-6 h-1 bg-two "></div>
+          {/* Hamburger Menu */}
+          <div className="relative" ref={menuRef}>
+            {/* Hamburger Icon Button */}
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              // 👇 THIS LINE was changed
+              className="relative top-0.5 z-20 w-6 h-6 text-two focus:outline-none"
+              aria-label="Toggle menu"
+            >
+              <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? 'rotate-45 top-2.5' : 'top-1'}`}></span>
+              <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? 'opacity-0' : 'top-2.5'}`}></span>
+              <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? '-rotate-45 top-2.5' : 'top-4'}`}></span>
+            </button>
+
+            {/* Dropdown Menu */}
+            <div
+              className={`
+                absolute right-0 mt-3 w-48 bg-five border-2 border-one rounded-lg shadow-xl
+                transition-all duration-300 ease-in-out origin-top-right
+                ${isMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
+              `}
+            >
+              <div className="py-2">
+                {allNavLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)} // Close menu on click
+                    className={`block px-4 py-2 text-md transition-colors
+                      ${pathname === link.href
+                        ? 'font-semibold text-one'
+                        : 'text-two hover:bg-six hover:text-one'
+                      }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
