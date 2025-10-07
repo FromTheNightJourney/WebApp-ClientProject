@@ -7,33 +7,32 @@ import Cookies from 'js-cookie';
 
 export default function Header() {
   const pathname = usePathname();
+  
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const menuRef = useRef<HTMLDivElement>(null); 
 
   const navLinks = [
-    { name: "Tabs", href: "/tabs" },
-    { name: "Pre-lab Questions", href: "/prelab" },
-    { name: "Escape Room", href: "/escape-room" },
-    { name: "Coding Races", href: "/coding-races" },
+    { name: "tabs", href: "/tabs" },
+    { name: "pre-lab questions", href: "/prelab" },
+    { name: "escape room", href: "/escape-room" },
+    { name: "coding races", href: "/coding-races" },
   ];
   
   const allNavLinks = [
-    { name: "Tabs", href: "/tabs" },
-    { name: "Pre-lab Questions", href: "/prelab" },
-    { name: "Escape Room", href: "/escape-room" },
-    { name: "Coding Races", href: "/coding-races" },
-    { name: "About", href: "/about" },
+    ...navLinks,
+    { name: "about", href: "/about" },
   ];
 
+  // effect: save last page to cookie
   useEffect(() => {
     const isMainNavLink = navLinks.some(link => link.href === pathname);
-    
     if (isMainNavLink) {
-      Cookies.set('lastVisitedPage', pathname, { expires: 365 });
+      Cookies.set('lastvisitedpage', pathname, { expires: 365 });
     }
-  }, [pathname, navLinks]); 
+  }, [pathname, navLinks]); // runs when path changes
 
+  // effect: check localstorage/system for theme on load
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -46,6 +45,7 @@ export default function Header() {
     }
   }, []);
 
+  // func: handles theme toggle click
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
@@ -59,6 +59,7 @@ export default function Header() {
     }
   };
 
+  // effect: click outside menu closes it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -71,21 +72,26 @@ export default function Header() {
     };
   }, [menuRef]);
 
+  // i head the render head renderer
   return (
     <header className="sticky top-0 z-50 bg-five text-two p-4 border-b-3 border-one">
+      {/* top part: title & id */}
       <div className="relative flex justify-end items-center">
-        <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">LaTrobe University Learning Management Website</div>
+        <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">latrobe university learning management website</div>
         <div className="text-lg font-semibold">22586526</div>
       </div>
 
       <hr className="my-3 border-two" />
 
+      {/* bottom part: navigation */}
       <div className="flex justify-between items-center">
+        {/* left side nav */}
         <nav className="flex space-x-4">
           {navLinks.map((link, index) => (
             <div key={link.name} className="flex items-center">
               <Link
                 href={link.href}
+                // active link style logic
                 className={`
                   py-1 border-b-2 transition-colors duration-300
                   ${pathname === link.href
@@ -96,11 +102,15 @@ export default function Header() {
               >
                 {link.name}
               </Link>
+              {/* separator */}
               {index < navLinks.length - 1 && <span className="text-two ml-4">|</span>}
             </div>
           ))}
         </nav>
+
+        {/* right side controls */}
         <div className="flex items-center space-x-4">
+          {/* about link */}
           <Link
             href="/about"
             className={`
@@ -111,13 +121,14 @@ export default function Header() {
               }
             `}
           >
-            About
+            about
           </Link>
           
+          {/* theme toggle button */}
           <button
             onClick={toggleDarkMode}
             className="dark-mode-toggle"
-            aria-label="Toggle dark mode"
+            aria-label="toggle dark mode"
           >
             <svg className="toggle-icon sun" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="12" cy="12" r="5"/>
@@ -126,23 +137,23 @@ export default function Header() {
             <svg className="toggle-icon moon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
-            <span className="ml-1">{isDarkMode ? 'Dark' : 'Light'}</span>
+            <span className="ml-1">{isDarkMode ? 'dark' : 'light'}</span>
           </button>
           
-          {/* Hamburger Menu */}
+          {/* hamburger menu */}
           <div className="relative" ref={menuRef}>
-            {/* Hamburger Icon Button */}
+            {/* hamburger icon, animates */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="relative top-0.5 z-20 w-6 h-6 text-two focus:outline-none"
-              aria-label="Toggle menu"
+              aria-label="toggle menu"
             >
               <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? 'rotate-45 top-2.5' : 'top-1'}`}></span>
               <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? 'opacity-0' : 'top-2.5'}`}></span>
               <span className={`block absolute h-1 w-full bg-current rounded-md transform transition duration-300 ease-in-out ${isMenuOpen ? '-rotate-45 top-2.5' : 'top-4'}`}></span>
             </button>
 
-            {/* Dropdown Menu */}
+            {/* dropdown, animates open/close */}
             <div
               className={`
                 absolute right-0 mt-3 w-48 bg-five border-2 border-one rounded-lg shadow-xl
@@ -151,11 +162,12 @@ export default function Header() {
               `}
             >
               <div className="py-2">
+                {/* map all links into the dropdown */}
                 {allNavLinks.map((link) => (
                   <Link
                     key={link.name}
                     href={link.href}
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => setIsMenuOpen(false)} 
                     className={`block px-4 py-2 text-md transition-colors
                       ${pathname === link.href
                         ? 'font-semibold text-one'
