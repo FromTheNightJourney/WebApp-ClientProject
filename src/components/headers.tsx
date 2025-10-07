@@ -8,8 +8,8 @@ import Cookies from 'js-cookie';
 export default function Header() {
   const pathname = usePathname();
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false); // State for hamburger menu
-  const menuRef = useRef<HTMLDivElement>(null); // Ref to detect clicks outside the menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false); 
+  const menuRef = useRef<HTMLDivElement>(null); 
 
   const navLinks = [
     { name: "Tabs", href: "/tabs" },
@@ -18,7 +18,6 @@ export default function Header() {
     { name: "Coding Races", href: "/coding-races" },
   ];
   
-  // A single array for all navigation items in the dropdown
   const allNavLinks = [
     { name: "Tabs", href: "/tabs" },
     { name: "Pre-lab Questions", href: "/prelab" },
@@ -35,7 +34,6 @@ export default function Header() {
     }
   }, [pathname, navLinks]); 
 
-  // Dark mode initialization
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -61,7 +59,6 @@ export default function Header() {
     }
   };
 
-  // Effect to close menu when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -137,7 +134,6 @@ export default function Header() {
             {/* Hamburger Icon Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              // 👇 THIS LINE was changed
               className="relative top-0.5 z-20 w-6 h-6 text-two focus:outline-none"
               aria-label="Toggle menu"
             >
@@ -159,7 +155,7 @@ export default function Header() {
                   <Link
                     key={link.name}
                     href={link.href}
-                    onClick={() => setIsMenuOpen(false)} // Close menu on click
+                    onClick={() => setIsMenuOpen(false)}
                     className={`block px-4 py-2 text-md transition-colors
                       ${pathname === link.href
                         ? 'font-semibold text-one'
