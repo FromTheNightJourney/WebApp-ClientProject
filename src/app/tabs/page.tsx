@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import Cookies from 'js-cookie';
 
 interface TabItem {
   id: number;
@@ -27,7 +28,7 @@ export default function TabsGeneratorPage() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' }); // Close the menu
+        setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' });
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -43,7 +44,17 @@ export default function TabsGeneratorPage() {
         const parsedTabs: TabItem[] = JSON.parse(storedTabs);
         if (parsedTabs.length > 0) {
           setTabItems(parsedTabs);
-          setActiveTabId(parsedTabs[0].id);
+          
+          const storedActiveId = Cookies.get('activeTabId');
+          const activeId = storedActiveId ? parseInt(storedActiveId, 10) : null;
+          
+          const activeTabExists = parsedTabs.some(tab => tab.id === activeId);
+
+          if (activeId && activeTabExists) {
+            setActiveTabId(activeId);
+          } else {
+            setActiveTabId(parsedTabs[0].id);
+          }
         }
       } else {
         const defaultTab = { id: 1, title: 'Step 1', content: 'Content for Step 1' };
@@ -67,6 +78,12 @@ export default function TabsGeneratorPage() {
   }, [tabItems]);
   
   useEffect(() => {
+    if (activeTabId !== null) {
+      Cookies.set('activeTabId', activeTabId.toString(), { expires: 365 });
+    }
+  }, [activeTabId]);
+
+  useEffect(() => {
     const activeTab = tabItems.find(tab => tab.id === activeTabId);
     if (editorRef.current && activeTab) {
       if (editorRef.current.innerHTML !== activeTab.content) {
@@ -77,20 +94,19 @@ export default function TabsGeneratorPage() {
 
   const handleToggleMenu = (tabId: number, target: HTMLButtonElement) => {
     if (menuProps.id === tabId) {
-      setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' }); // Close if already open
+      setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' });
       return;
     }
     
     const rect = target.getBoundingClientRect();
-    const menuHeight = 80; // Estimated height of the dropdown menu
+    const menuHeight = 80;
     
     let position: 'top' | 'bottom' = 'bottom';
-    let top = rect.bottom + 4; // Position below the button with a 4px gap
+    let top = rect.bottom + 4;
   
-    // If there's not enough space at the bottom, position it on top
     if (rect.bottom + menuHeight > window.innerHeight) {
       position = 'top';
-      top = rect.top - 4; // Position above the button with a 4px gap
+      top = rect.top - 4;
     }
   
     setMenuProps({
@@ -154,7 +170,7 @@ export default function TabsGeneratorPage() {
   };
 
   const openModal = (type: 'rename' | 'delete', tab: TabItem) => {
-    setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' }); // Close dropdown menu
+    setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' });
     setModalState({ type, tab });
     if (type === 'rename') {
       setNewTitle(tab.title);
@@ -175,56 +191,39 @@ export default function TabsGeneratorPage() {
   };
 
   const generateExportHtml = () => {
-    const styles = `
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px; }
-    .tabs-container { max-width: 800px; margin: 0 auto; }
-    .tabs-nav { display: flex; border-bottom: 1px solid #d1d5db; }
-    .tab-link {
-      padding: 10px 20px;
-      cursor: pointer;
-      border: 1px solid transparent;
-      border-bottom: none;
-      background-color: #e5e7eb;
-      font-size: 16px;
-      margin-right: 2px;
-      border-radius: 6px 6px 0 0;
-      transition: background-color 0.2s;
-    }
-    .tab-link:hover { background-color: #d1d5db; }
-    .tab-link.active {
-      background-color: #fff;
-      border-color: #d1d5db;
-      border-bottom-color: #fff;
-      position: relative;
-      top: 1px;
-    }
-    .tab-content-panel {
-      display: none;
-      padding: 20px;
-      border: 1px solid #d1d5db;
-      background-color: #fff;
-      border-radius: 0 6px 6px 6px;
-    }
-    `;
-    
+    const s = {
+      body: `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px;`,
+      container: `max-width: 800px; margin: 0 auto;`,
+      nav: `display: flex; border-bottom: 1px solid #d1d5db;`,
+      tabLink: `padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; background-color: #e5e7eb; font-size: 16px; margin-right: 2px; border-radius: 6px 6px 0 0;`,
+      tabPanel: `display: none; padding: 20px; border: 1px solid #d1d5db; background-color: #fff; border-radius: 0 6px 6px 6px;`,
+    };
+
     const scripts = `
       document.addEventListener('DOMContentLoaded', function() {
-        const tabs = document.querySelectorAll('.tab-link');
-        const tabPanels = document.querySelectorAll('.tab-content-panel');
+        const tabs = document.querySelectorAll('button[data-target]');
+        const tabPanels = document.querySelectorAll('div[data-panel]');
+
+        const inactiveTabStyle = 'background-color: #e5e7eb; border-color: transparent;';
+        const activeTabStyle = 'background-color: #fff; border-color: #d1d5db; border-bottom-color: #fff; position: relative; top: 1px;';
 
         function switchTab(clickedTab) {
-          tabs.forEach(tab => {
-            tab.classList.remove('active');
-          });
+          // Hide all panels and reset all tab styles
           tabPanels.forEach(panel => {
             panel.style.display = 'none';
+          });
+          tabs.forEach(tab => {
+            // Combine original style with inactive style
+            tab.setAttribute('style', '${s.tabLink}' + inactiveTabStyle);
           });
 
           const targetPanelId = clickedTab.getAttribute('data-target');
           const targetPanel = document.getElementById(targetPanelId);
           
           if (targetPanel) {
-            clickedTab.classList.add('active');
+            // Apply active styles to the clicked tab
+            clickedTab.setAttribute('style', '${s.tabLink}' + activeTabStyle);
+            // Show the target panel
             targetPanel.style.display = 'block';
           }
         }
@@ -235,6 +234,7 @@ export default function TabsGeneratorPage() {
           });
         });
 
+        // Initialize the first tab as active
         if (tabs.length > 0) {
           switchTab(tabs[0]);
         }
@@ -247,16 +247,13 @@ export default function TabsGeneratorPage() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Generated Tabs</title>
-  <style>
-    ${styles}
-  </style>
 </head>
-<body>
-  <div class="tabs-container">
-    <div class="tabs-nav">
-      ${tabItems.map(tab => `<button class="tab-link" data-target="tab-${tab.id}">${tab.title}</button>`).join('')}
+<body style="${s.body}">
+  <div style="${s.container}">
+    <div style="${s.nav}">
+      ${tabItems.map(tab => `<button data-target="panel-${tab.id}" style="${s.tabLink}">${tab.title}</button>`).join('')}
     </div>
-    ${tabItems.map(tab => `<div id="tab-${tab.id}" class="tab-content-panel">${tab.content}</div>`).join('')}
+    ${tabItems.map(tab => `<div id="panel-${tab.id}" data-panel="true" style="${s.tabPanel}">${tab.content}</div>`).join('')}
   </div>
   <script>
     ${scripts}
@@ -265,26 +262,12 @@ export default function TabsGeneratorPage() {
 </html>`;
 
     setExportableHtml(finalHtml);
-
-    // Create a Blob from the HTML string
     const blob = new Blob([finalHtml], { type: 'text/html' });
-
-    // Create a link element
     const link = document.createElement('a');
-
-    // Set the link's href to a URL representing the Blob
     link.href = URL.createObjectURL(blob);
-
-    // Set the download attribute with a filename
     link.download = 'tabs.html';
-
-    // Append the link to the body (required for Firefox)
     document.body.appendChild(link);
-
-    // Programmatically click the link to trigger the download
     link.click();
-
-    // Clean up by removing the link and revoking the URL
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   };
@@ -460,4 +443,3 @@ export default function TabsGeneratorPage() {
     </div>
   );
 }
-
