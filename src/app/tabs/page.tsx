@@ -19,15 +19,11 @@ export default function TabsGeneratorPage() {
   const [newTitle, setNewTitle] = useState('');
   const [isDeleteAllConfirmModalOpen, setDeleteAllConfirmModalOpen] = useState<boolean>(false);
 
-  // refs to grab specific html elements directly, like editor and pop-up menu
   const editorRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  const isInitialMount = useRef(true);
 
-  // automation handles
-  // - close the menu when clicking away
-  // - load saved tabs from storage when page opens
-  // - saving tabs back to storage whenever changing
-  // - updating the editor's content when switch tabs
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -72,7 +68,15 @@ export default function TabsGeneratorPage() {
     }
   }, []);
 
+  // modified save effect
   useEffect(() => {
+    // if first render, skip save logic
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // after all next renders, the save logic will run.
     if (tabItems.length > 0) {
       localStorage.setItem('tabData', JSON.stringify(tabItems));
     } else {
@@ -95,7 +99,6 @@ export default function TabsGeneratorPage() {
     }
   }, [activeTabId, tabItems]);
 
-  // all the functions for handling user actions like adding, renaming, and deleting tabs
   const handleToggleMenu = (tabId: number, target: HTMLButtonElement) => {
     if (menuProps.id === tabId) {
       setMenuProps({ id: null, top: 0, right: 0, position: 'bottom' });
@@ -194,7 +197,6 @@ export default function TabsGeneratorPage() {
     );
   };
 
-  // main function that builds the final, downloadable html file
   const generateExportHtml = () => {
     const s = {
       body: `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px;`,
@@ -281,7 +283,6 @@ export default function TabsGeneratorPage() {
 
   return (
     <div className="container min-w-full px-10 p-4">
-      {/* the main three-column layout: tabs list, content editor, and html output */}
       <main className="flex h-full justify-between items-start space-x-4">
         <div className="w-1/3 max-w-60 bg-hover p-4 rounded-lg shadow-md flex flex-col border border-shade">
           <div className="flex justify-between items-center sticky top-0 bg-hover pb-2 z-1">
@@ -337,7 +338,6 @@ export default function TabsGeneratorPage() {
             className="flex-grow p-2 border border-shade rounded-md overflow-auto focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
-        
         <div className="flex flex-1 max-h-[calc(100vh-120px)] flex-col w-1/3 h-full bg-hover text-primary p-4 pt-3 rounded-lg shadow-md border border-shade">
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-xl font-bold">Generated HTML Code</h2>
@@ -362,7 +362,6 @@ export default function TabsGeneratorPage() {
         </div>
       </main>
 
-      {/* options menu, notifs, confirmation modals */}
       {menuProps.id !== null && (() => {
         const tab = tabItems.find(t => t.id === menuProps.id);
         if (!tab) return null;
@@ -407,12 +406,12 @@ export default function TabsGeneratorPage() {
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleRenameTab()}
-              className="w-full p-2 mb-4 border rounded-md bg-hover"
+              className="w-full p-2 mb-3 border rounded-md bg-hover"
               autoFocus
             />
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-14">
               <button onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
-              <button onClick={handleRenameTab} className="bg-primary text-background px-4 py-2 rounded-md hover:bg-button">Save</button>
+              <button onClick={handleRenameTab} className="float:right bg-black text-white px-4 py-2 rounded-md hover:bg-button">Save</button>
             </div>
           </div>
         </div>
