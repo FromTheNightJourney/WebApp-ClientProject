@@ -13,15 +13,15 @@ export default function Header() {
   const menuRef = useRef<HTMLDivElement>(null); 
 
   const navLinks = [
-    { name: "tabs", href: "/tabs" },
-    { name: "pre-lab questions", href: "/prelab" },
-    { name: "escape room", href: "/escape-room" },
-    { name: "coding races", href: "/coding-races" },
+    { name: "Tabs", href: "/tabs" },
+    { name: "Pre-lab Questions", href: "/prelab" },
+    { name: "Escape Room", href: "/escape-room" },
+    { name: "Coding Races", href: "/coding-races" },
   ];
   
   const allNavLinks = [
     ...navLinks,
-    { name: "about", href: "/about" },
+    { name: "About", href: "/about" },
   ];
 
   // effect: save last page to cookie
@@ -77,7 +77,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-five text-two p-4 border-b-3 border-one">
       {/* top part: title & id */}
       <div className="relative flex justify-end items-center">
-        <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">latrobe university learning management website</div>
+        <div className="absolute left-1/2 -translate-x-1/2 text-2xl font-bold">LaTrobe University Learning Management Website</div>
         <div className="text-lg font-semibold">22586526</div>
       </div>
 
@@ -121,7 +121,7 @@ export default function Header() {
               }
             `}
           >
-            about
+            About
           </Link>
           
           {/* theme toggle button */}
@@ -137,7 +137,7 @@ export default function Header() {
             <svg className="toggle-icon moon" viewBox="0 0 24 24" fill="currentColor">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
             </svg>
-            <span className="ml-1">{isDarkMode ? 'dark' : 'light'}</span>
+            <span className="ml-1">{isDarkMode ? 'Dark' : 'Light'}</span>
           </button>
           
           {/* hamburger menu */}

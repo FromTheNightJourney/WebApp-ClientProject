@@ -37,24 +37,6 @@ export default function AboutPage() {
               </p>
             </section>
 
-            {/* Technology Stack Section */}
-            <section className="bg-eight  rounded-xl p-8 shadow-sm border border-seven ">
-              <h2 className="text-2xl font-bold text-one  mb-6 text-center">Primarily Used Technology</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center">
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-two ">Next.js</h3>
-                  <p className="text-two  mt-2">The React framework for building fast and scalable web applications.</p>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-two ">React</h3>
-                  <p className="text-two  mt-2">A JavaScript library for building user interfaces with a component-based architecture.</p>
-                </div>
-                <div className="p-4">
-                  <h3 className="text-xl font-semibold text-two ">Tailwind CSS</h3>
-                  <p className="text-two  mt-2">A utility-first CSS framework for rapid UI development and clean styling.</p>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
       </div>
