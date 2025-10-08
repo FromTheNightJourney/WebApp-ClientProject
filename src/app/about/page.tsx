@@ -19,8 +19,8 @@ export default function AboutPage() {
               <div className="aspect-video relative overflow-hidden rounded-lg border-2 border-six ">
                 <iframe
                   className="absolute top-0 left-0 w-full h-full"
-                  src="https://www.youtube.com/embed/a8dgNdJVluc"
-                  frameBorder="0"
+                  src="https://www.youtube.com/embed/O-CjYoJ3pDI"
+                  frameBorder=""
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   title="LTU Moodle Builder Demonstration"
