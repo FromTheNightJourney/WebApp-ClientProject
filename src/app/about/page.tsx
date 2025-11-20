@@ -3,14 +3,14 @@ export default function AboutPage() {
     <div>
       <div className="container mx-auto px-4 pt-6 pb-12">
 
-        {/* Hero Section */}
+        {/* hero section */}
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold tracking-tight text-one sm:text-5xl">
             Project Details
           </h1>
         </header>
 
-        {/* Constraining wrapper for content sections */}
+        {/* content section wrapper*/}
         <div className="max-w-3xl mx-auto">
           <div className="space-y-12">
             {/* Demonstration Video Section */}
@@ -28,7 +28,7 @@ export default function AboutPage() {
               </div>
             </section>
 
-            {/* About the Developer */}
+            {/* about me */}
             <section className="bg-eight  rounded-xl p-8 shadow-sm border border-seven ">
               <h2 className="text-2xl font-bold text-one  mb-4">About the Project</h2>
               <p className="text-three  leading-relaxed">
