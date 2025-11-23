@@ -32,7 +32,7 @@ export default function AboutPage() {
             <section className="bg-eight  rounded-xl p-8 shadow-sm border border-seven ">
               <h2 className="text-2xl font-bold text-one  mb-4">About the Project</h2>
               <p className="text-three  leading-relaxed">
-                I'm Andrew Tanuwijaya, a Latrobe/Binus International University student currently undergoing the CSE3CWA/CSE5006 course, Cloud Web-Application Design.
+                I am Andrew Tanuwijaya, a Latrobe/Binus International University student currently undergoing the CSE3CWA/CSE5006 course, Cloud Web-Application Design.
                 The primary function of this web app is to generate HTML and JavaScript code to be able to deploy them on the MOODLE LMS platform.
               </p>
             </section>
