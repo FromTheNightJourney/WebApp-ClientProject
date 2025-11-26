@@ -98,7 +98,7 @@ export default function EscapeRoom() {
   };
 
   const convertCsv = () => {
-    // convert simple CSV -> JSON array
+    // CSV to JSON conversion
     try {
       const lines = csvInput.trim().split("\n");
       const headers = lines[0].split(",").map((h) => h.trim());
