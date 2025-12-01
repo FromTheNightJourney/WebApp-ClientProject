@@ -450,12 +450,10 @@ const PuzzleCard = ({
    Main Page Component
    ======================= */
 export default function EscapeRoomPage() {
-  /* ---------- state: puzzles & hotspots ---------- */
   const [puzzles, setPuzzles] = useState<Puzzle[]>(() => loadPuzzlesLS());
   const [hotspots, setHotspots] = useState<Hotspot[]>(() => loadHotspotsLS());
   const [settings, setSettings] = useState<Settings>(() => loadSettingsLS());
 
-  /* ---------- builder form state ---------- */
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formType, setFormType] = useState<PuzzleType>("short");
   const [formQuestion, setFormQuestion] = useState("");
@@ -465,26 +463,22 @@ export default function EscapeRoomPage() {
   const [formPreviewImage, setFormPreviewImage] = useState<string | undefined>(undefined);
   const formImageRef = useRef<HTMLInputElement | null>(null);
 
-  /* ---------- UI state ---------- */
   const [mode, setMode] = useState<"builder" | "play">("builder");
   const [assignPopup, setAssignPopup] = useState<{ hotspotId: string; xPct: number; yPct: number } | null>(null);
   const [modalHotspotIndex, setModalHotspotIndex] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"puzzles" | "settings">("puzzles");
 
-  /* ---------- timer/play state ---------- */
   const [timeLeft, setTimeLeft] = useState<number>(settings.globalMinutes * 60);
   const timerRef = useRef<number | null>(null);
   const [completed, setCompleted] = useState<boolean[]>([]);
 
-  /* ---------- refs for image container & dragging ---------- */
   const imageContainerRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   
   // Custom hook to get image dimensions for coordinate mapping - use same container for both modes
   const imageDims = useImageDimensions(imageContainerRef, settings.bgImageDataUrl ?? null);
 
-  /* ---------- persist changes to localStorage ---------- */
   useEffect(() => savePuzzlesLS(puzzles), [puzzles]);
   useEffect(() => saveHotspotsLS(hotspots), [hotspots]);
   useEffect(() => saveSettingsLS(settings), [settings]);
@@ -588,17 +582,14 @@ export default function EscapeRoomPage() {
 
   const deletePuzzle = (id: string) => {
     if (!confirm("Delete puzzle?")) return;
-    // unlink hotspots that reference this puzzle
     setHotspots((hs) => hs.map((h) => (h.puzzleId === id ? { ...h, puzzleId: null } : h)));
     setPuzzles((ps) => ps.filter((p) => p.id !== id));
   };
 
-  // Check if a puzzle is linked to any hotspot
   const isPuzzleLinked = (puzzleId: string) => {
     return hotspots.some(hotspot => hotspot.puzzleId === puzzleId);
   };
 
-  /* ---------- hotspots creation & dragging ---------- */
   const onImageClick_CreateHotspot = (ev: React.MouseEvent) => {
     if (!imageContainerRef.current) return;
 
@@ -606,12 +597,10 @@ export default function EscapeRoomPage() {
     const x = ev.clientX - rect.left;
     const y = ev.clientY - rect.top;
 
-    // Calculate click position as percentage of the container
     const containerXPct = (x / rect.width) * 100;
     const containerYPct = (y / rect.height) * 100;
 
-    // Convert container percentage to image percentage
-    // This is the inverse of what we do in getHotspotContainerPosition
+
     const xPct = clamp((containerXPct - imageDims.offsetX) / imageDims.scaleFactorX);
     const yPct = clamp((containerYPct - imageDims.offsetY) / imageDims.scaleFactorY);
     
@@ -629,7 +618,6 @@ export default function EscapeRoomPage() {
     const h = hotspots.find((ht) => ht.id === hotspotId);
     if (!h) return;
     
-    // Calculate the current pixel position of the hotspot on the screen relative to container
     const currentContainerXPct = h.xPct * imageDims.scaleFactorX + imageDims.offsetX;
     const currentContainerYPct = h.yPct * imageDims.scaleFactorY + imageDims.offsetY;
 
@@ -654,13 +642,11 @@ export default function EscapeRoomPage() {
       const containerXPct = (containerX / rect.width) * 100;
       const containerYPct = (containerY / rect.height) * 100;
 
-      // Map container percentage back to image percentage
       const xPct = clamp((containerXPct - imageDims.offsetX) / imageDims.scaleFactorX);
       const yPct = clamp((containerYPct - imageDims.offsetY) / imageDims.scaleFactorY);
       
       setHotspots((hs) => hs.map((h) => (h.id === id ? { ...h, xPct, yPct } : h)));
       
-      // Update assignPopup position for visual feedback
       setAssignPopup((prev) => (prev ? { ...prev, xPct: containerXPct, yPct: containerYPct } : null));
     }
     
@@ -694,7 +680,6 @@ export default function EscapeRoomPage() {
     setAssignPopup(null);
   };
 
-  /* ---------- click handler for image container (builder) ---------- */
   const handleImageContainerClick = (e: React.MouseEvent) => {
     if (mode !== "builder") return;
     const target = e.target as HTMLElement;
@@ -715,7 +700,6 @@ export default function EscapeRoomPage() {
     onImageClick_CreateHotspot(e);
   };
 
-  /* ---------- Play mode modal open/close ---------- */
   const openModalForHotspotIndex = (idx: number) => {
     setModalHotspotIndex(idx);
     setModalOpen(true);
@@ -766,17 +750,13 @@ export default function EscapeRoomPage() {
     alert("Payload prepared and logged to console. Replace with API call.");
   };
 
-  // Helper to calculate the screen position of a hotspot given the image dimensions
   const getHotspotContainerPosition = (h: Hotspot) => {
-    // Use the same imageDims for both modes to ensure consistent positioning
     const dims = imageDims;
     
-    // If dimensions aren't calculated yet, use default positioning
     if (dims.containerWidth === 0 || dims.containerHeight === 0) {
       return { left: `${h.xPct}%`, top: `${h.yPct}%` };
     }
     
-    // Maps the image's 0-100% coordinates to the container's 0-100% coordinates
     const left = `${h.xPct * dims.scaleFactorX + dims.offsetX}%`;
     const top = `${h.yPct * dims.scaleFactorY + dims.offsetY}%`;
     return { left, top };
@@ -1132,7 +1112,6 @@ export default function EscapeRoomPage() {
                         onClick={(ev) => {
                           ev.stopPropagation();
                           if (mode === "builder") {
-                            // Calculate the container position for the popup
                             const currentContainerXPct = h.xPct * imageDims.scaleFactorX + imageDims.offsetX;
                             const currentContainerYPct = h.yPct * imageDims.scaleFactorY + imageDims.offsetY;
                             setAssignPopup({ hotspotId: h.id, xPct: currentContainerXPct, yPct: currentContainerYPct });
@@ -1146,7 +1125,7 @@ export default function EscapeRoomPage() {
                     );
                   })}
 
-                  {/* assign popup (hotspot-ui) — can expand outside canvas */}
+                  {/* assign popup (hotspot-ui) */}
                   {assignPopup && mode === "builder" && (
                     <div
                       className="absolute z-40 p-4 bg-white border border-gray-200 rounded-lg shadow-lg hotspot-ui"
@@ -1191,7 +1170,7 @@ export default function EscapeRoomPage() {
                         <SmallCreateForm onCreate={async (np) => { await createPuzzleAndLink(assignPopup.hotspotId, np); }} />
                       </div>
                       
-                      {/* Display the internal image coordinates for debugging */}
+                      {/* internal coords for debug */}
                       {hotspots.find(h => h.id === assignPopup.hotspotId) && (
                           <div className="mt-2 text-xs text-gray-500">
                               Hotspot coordinates: {hotspots.find(h => h.id === assignPopup.hotspotId)?.xPct.toFixed(1)}%, {hotspots.find(h => h.id === assignPopup.hotspotId)?.yPct.toFixed(1)}%
@@ -1264,7 +1243,6 @@ export default function EscapeRoomPage() {
                   <div
                     key={h.id}
                     onClick={() => {
-                      // open modal for this hotspot index
                       openModalForHotspotIndex(idx);
                     }}
                     style={{ position: "absolute", left, top, transform: "translate(-50%, -50%)", cursor: "pointer", zIndex: 30 }}
