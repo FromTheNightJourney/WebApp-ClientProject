@@ -465,14 +465,12 @@ export default function EscapeRoomPage() {
   const imageContainerRef = useRef<HTMLDivElement | null>(null);
   const draggingRef = useRef<{ id: string; offsetX: number; offsetY: number } | null>(null);
   
-  // Custom hook to get image dimensions for coordinate mapping - use same container for both modes
   const imageDims = useImageDimensions(imageContainerRef, settings.bgImageDataUrl ?? null);
 
   useEffect(() => savePuzzlesLS(puzzles), [puzzles]);
   useEffect(() => saveHotspotsLS(hotspots), [hotspots]);
   useEffect(() => saveSettingsLS(settings), [settings]);
 
-  /* keep completed aligned with hotspots array length */
   useEffect(() => {
     setCompleted((prev) => {
       const copy = [...prev];
@@ -482,7 +480,6 @@ export default function EscapeRoomPage() {
     });
   }, [hotspots.length]);
 
-  /* timer management when entering play mode */
   useEffect(() => {
     if (mode !== "play") return;
     setTimeLeft(settings.globalMinutes * 60);
@@ -673,19 +670,15 @@ export default function EscapeRoomPage() {
     if (mode !== "builder") return;
     const target = e.target as HTMLElement;
 
-    // ignore clicks inside hotspot UI popup
     if (target.closest?.(".hotspot-ui")) return;
 
-    // ignore clicks on hotspots themselves (they have data-hotspot attr)
     if (target.dataset?.hotspot === "true") return;
 
-    // if assign popup is open and user clicks outside popup => delete hotspot
     if (assignPopup) {
       removeHotspot(assignPopup.hotspotId);
       return;
     }
 
-    // otherwise create new hotspot
     onImageClick_CreateHotspot(e);
   };
 
