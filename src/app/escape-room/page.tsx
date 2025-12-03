@@ -31,8 +31,8 @@ type Puzzle = {
 type Hotspot = {
   id: string;
   puzzleId: string | null;
-  xPct: number; // 0..100 (relative to the image's original dimensions)
-  yPct: number; // 0..100 (relative to the image's original dimensions)
+  xPct: number; 
+  yPct: number; 
 };
 
 type Settings = {
@@ -41,18 +41,17 @@ type Settings = {
 };
 
 type ImageDimensions = {
-  // Dimensions of the area the contained image occupies, relative to the container (0-100%)
   scaleFactorX: number;
   scaleFactorY: number;
-  offsetX: number; // Left margin percentage (0-100%)
-  offsetY: number; // Top margin percentage (0-100%)
+  offsetX: number; 
+  offsetY: number; 
   containerWidth: number;
   containerHeight: number;
 };
 
 
 /* =======================
-   LocalStorage helpers (easy to swap for API)
+   LocalStorage helpers (switch to API later)
    ======================= */
 const LS_PUZZLES = "escape:puzzles:v3";
 const LS_HOTSPOTS = "escape:hotspots:v3";
@@ -118,7 +117,6 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
     const containerWidth = containerEl.clientWidth;
     const containerHeight = containerEl.clientHeight;
 
-    // If the container is not laid out yet, use default values
     if (containerWidth === 0 || containerHeight === 0) {
       return;
     }
@@ -131,18 +129,14 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
       let finalWidth: number;
       let finalHeight: number;
 
-      // Determine the final dimensions of the contained image (object-fit: contain)
       if (imageRatio > containerRatio) {
-        // Image is wider relative to container: width will be constrained to container width
         finalWidth = containerWidth;
         finalHeight = finalWidth / imageRatio;
       } else {
-        // Image is taller (or equal): height will be constrained to container height
         finalHeight = containerHeight;
         finalWidth = finalHeight * imageRatio;
       }
 
-      // Calculate offsets (the margins) and scaling factors relative to the container's 0-100% space
       const offsetX = (containerWidth - finalWidth) / 2 / containerWidth * 100;
       const offsetY = (containerHeight - finalHeight) / 2 / containerHeight * 100;
       const scaleFactorX = finalWidth / containerWidth;
@@ -161,22 +155,18 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
   }, [containerRef, imageUrl]);
 
   useEffect(() => {
-    // Initial calculation
     calculate();
 
     let ro: ResizeObserver | null = null;
     const el = containerRef.current;
 
-    // Use ResizeObserver to watch for container size changes
     if (typeof window !== "undefined" && "ResizeObserver" in window && el) {
       ro = new ResizeObserver(() => {
-        // Debounce resize events
         setTimeout(calculate, 100);
       });
       ro.observe(el);
     }
 
-    // Also recalculate when window resizes
     const handleResize = () => {
       setTimeout(calculate, 100);
     };
@@ -277,7 +267,6 @@ const PuzzleModal = ({
             onClick={() => {
               const ok = onSubmit(puzzle.type === "mcq" ? choiceRef.current ?? -1 : textRef.current);
               if (ok) {
-                // small feedback, you might want to replace with a nicer UX
                 alert("Correct!");
                 onClose();
               } else {
