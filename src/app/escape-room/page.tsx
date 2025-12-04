@@ -22,9 +22,9 @@ type Puzzle = {
   id: string;
   type: PuzzleType;
   question: string;
-  options: string[]; // for mcq
+  options: string[];
   correctIndex: number | null;
-  expectedAnswer: string; // for short
+  expectedAnswer: string;
   imageDataUrl?: string;
 };
 
@@ -50,9 +50,7 @@ type ImageDimensions = {
 };
 
 
-/* =======================
-   LocalStorage helpers (switch to API later)
-   ======================= */
+/* LocalStorage */
 const LS_PUZZLES = "escape:puzzles:v3";
 const LS_HOTSPOTS = "escape:hotspots:v3";
 const LS_SETTINGS = "escape:settings:v3";
@@ -87,16 +85,10 @@ const loadSettingsLS = (): Settings => {
   }
 };
 
-/* =======================
-   Utilities
-   ======================= */
+/* Utilities */
 const uid = () => Math.random().toString(36).slice(2, 9);
 const clamp = (v: number, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 
-/**
- * Custom hook to calculate the scaling and offset of an object-fit: contain image
- * inside a fixed-size container.
- */
 const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>, imageUrl: string | null): ImageDimensions => {
   const [dims, setDims] = useState<ImageDimensions>({ 
     scaleFactorX: 1, 
@@ -184,9 +176,7 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
 };
 
 
-/* =======================
-   Modal (Portal) used in Play
-   ======================= */
+/* Modal */
 const PuzzleModal = ({
   puzzle,
   open,
@@ -283,9 +273,6 @@ const PuzzleModal = ({
   );
 };
 
-/* =======================
-   SmallCreateForm used in builder popup to quickly create a puzzle
-   ======================= */
 function SmallCreateForm({ onCreate }: { onCreate: (p: Omit<Puzzle, "id">) => Promise<void> | void }) {
   const [type, setType] = useState<PuzzleType>("short");
   const [question, setQuestion] = useState("");
@@ -361,9 +348,7 @@ function SmallCreateForm({ onCreate }: { onCreate: (p: Omit<Puzzle, "id">) => Pr
   );
 }
 
-/* =======================
-   Puzzle Card Component
-   ======================= */
+/* Puzzle Component */
 const PuzzleCard = ({ 
   puzzle, 
   index, 
@@ -435,9 +420,7 @@ const PuzzleCard = ({
   );
 };
 
-/* =======================
-   Main Page Component
-   ======================= */
+/* Main Page */
 export default function EscapeRoomPage() {
   const [puzzles, setPuzzles] = useState<Puzzle[]>(() => loadPuzzlesLS());
   const [hotspots, setHotspots] = useState<Hotspot[]>(() => loadHotspotsLS());
@@ -499,7 +482,7 @@ export default function EscapeRoomPage() {
     };
   }, [mode, settings.globalMinutes]);
 
-  /* ---------- helper functions for puzzles ---------- */
+  /* puzzle helper function */
   const resetForm = () => {
     setEditingId(null);
     setFormType("short");
@@ -721,7 +704,6 @@ export default function EscapeRoomPage() {
     }
   };
 
-  /* ---------- small helpers ---------- */
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
   const preparePayload = () => ({ puzzles, hotspots, settings });
@@ -744,7 +726,7 @@ export default function EscapeRoomPage() {
     return { left, top };
   };
 
-  /* ---------- UI rendering ---------- */
+  /* UI render */
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -803,7 +785,7 @@ export default function EscapeRoomPage() {
         </div>
       </header>
 
-      {/* builder mode UI */}
+      {/* builder mode */}
       {mode === "builder" && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Stats Bar */}
@@ -980,7 +962,7 @@ export default function EscapeRoomPage() {
                         </div>
                       </div>
 
-                      {/* Puzzles List */}
+                      {/* puzzles */}
                       <div>
                         <h3 className="font-semibold text-gray-900 mb-3">All Puzzles</h3>
                         <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -1005,7 +987,7 @@ export default function EscapeRoomPage() {
                       </div>
                     </div>
                   ) : (
-                    /* Settings Tab */
+                    /* settings */
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Time Limit (minutes)</label>
@@ -1052,7 +1034,7 @@ export default function EscapeRoomPage() {
               </div>
             </div>
 
-            {/* Canvas */}
+            {/* canvas */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                 <div className="flex justify-between items-center mb-4">
