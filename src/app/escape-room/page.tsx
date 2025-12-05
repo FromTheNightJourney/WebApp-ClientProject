@@ -503,6 +503,42 @@ export default function EscapeRoomPage() {
   
   const imageDims = useImageDimensions(imageContainerRef, settings.bgImageDataUrl ?? null);
 
+useEffect(() => {
+    const loadFromDatabase = async () => {
+      // 1. Check URL for ID (e.g. ?id=clq...)
+      const params = new URLSearchParams(window.location.search);
+      const urlId = params.get("id");
+
+      if (urlId) {
+        try {
+          console.log("Fetching room:", urlId);
+          const res = await fetch(`/api/escape-room/load?id=${urlId}`);
+          
+          if (!res.ok) {
+            if (res.status === 404) alert("Room not found in database.");
+            throw new Error("Failed to load");
+          }
+
+          const data = await res.json();
+
+          // 2. Overwrite state with Database data
+          setPuzzles(data.puzzles);
+          setHotspots(data.hotspots);
+          setSettings({
+            ...data.settings,
+            roomId: urlId // Save ID so "Save" button updates this room instead of creating new
+          });
+          
+          console.log("✅ Successfully loaded from Database");
+        } catch (e) {
+          console.error("Load error:", e);
+        }
+      }
+    };
+
+    loadFromDatabase();
+  }, []); 
+
   useEffect(() => savePuzzlesLS(puzzles), [puzzles]);
   useEffect(() => saveHotspotsLS(hotspots), [hotspots]);
   useEffect(() => saveSettingsLS(settings), [settings]);
@@ -763,8 +799,26 @@ export default function EscapeRoomPage() {
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
+const handleCopyId = async () => {
+    if (!settings.roomId) return;
+    try {
+      await navigator.clipboard.writeText(settings.roomId);
+      alert("✅ Room ID copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  const handleLoadRoom = () => {
+    const id = prompt("Enter the Room ID you want to load:");
+    if (id && id.trim()) {
+      // Force a real page reload to ensure a clean state
+      window.location.href = `/escape-room?id=${id.trim()}`;
+    }
+  };
+
   const saveToServerStub = async () => {
-    const roomName = prompt("Enter a name for this room:", "My Escape Room");
+    const roomName = prompt("Please enter a name for your room:", "Just An Escape Room");
     if (!roomName) return;
 
     try {
@@ -787,13 +841,15 @@ export default function EscapeRoomPage() {
       const data = await res.json();
       
       setSettings(prev => ({ ...prev, roomId: data.roomId }));
-      alert("✅ Saved successfully to Database!");
+      alert("✅ Got it! Successfully to Database!");
       
     } catch (e) {
       console.error(e);
-      alert("❌ Error saving to database");
+      alert("❌ Error! Couldn't save to the database");
     }
   };
+
+  
 
   const getHotspotContainerPosition = (h: Hotspot) => {
     const dims = imageDims;
@@ -857,28 +913,48 @@ export default function EscapeRoomPage() {
                 </button>
               </div>
               
-              <div className="flex gap-2">
-                <button 
-                  className="px-4 py-2 bg-slate-700 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"
-                  onClick={saveToServerStub}
-                >
-                  Save Project
-                </button>
-                <button 
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors"
-                  onClick={() => {
-                    if (!confirm("Clear all puzzles, hotspots and background?")) return;
-                    setPuzzles([]);
-                    setHotspots([]);
-                    setSettings({ globalMinutes: 5, bgImageDataUrl: null });
-                    localStorage.removeItem(LS_PUZZLES);
-                    localStorage.removeItem(LS_HOTSPOTS);
-                    localStorage.removeItem(LS_SETTINGS);
-                  }}
-                >
-                  Clear All
-                </button>
-              </div>
+<div className="flex gap-2">
+  {/* load button and stuff */}
+  <button 
+    className="px-4 py-2 border border-blue-200 text-blue-700 bg-blue-50 rounded-md text-sm font-medium hover:bg-blue-100 transition-colors"
+    onClick={handleLoadRoom}
+  >
+    📂 Load Room
+  </button>
+
+  {/* copy button ID if saved) */}
+  {settings.roomId && (
+    <button 
+      className="px-4 py-2 border border-purple-200 text-purple-700 bg-purple-50 rounded-md text-sm font-medium hover:bg-purple-100 transition-colors"
+      onClick={handleCopyId}
+      title={settings.roomId}
+    >
+      📋 Copy ID
+    </button>
+  )}
+
+  {/* save button */}
+  <button 
+    className="px-4 py-2 bg-slate-700 text-white rounded-md text-sm font-medium hover:bg-slate-800 transition-colors"
+    onClick={saveToServerStub}
+  >
+    💾 Save
+  </button>
+  
+  {/* clear all */}
+  <button 
+    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-sm font-medium hover:bg-gray-300 transition-colors"
+    onClick={() => {
+      if (!confirm("Clear all puzzles, hotspots and background?")) return;
+      setPuzzles([]);
+      setHotspots([]);
+      setSettings({ globalMinutes: 5, bgImageDataUrl: null, roomId: undefined }); // Clear ID too
+      window.history.pushState({}, "", window.location.pathname);
+    }}
+  >
+    Clear
+  </button>
+</div>
             </div>
           </div>
         </div>
