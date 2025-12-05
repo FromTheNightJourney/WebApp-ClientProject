@@ -1,14 +1,57 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model Room {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  name          String
+  description   String?
+  theme         String?
+  imageUrl      String?
+  globalMinutes Int       @default(60)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  hotspots      Hotspot[]
+  puzzles       Puzzle[]
+
+  @@map("rooms")
+}
+
+model Puzzle {
+  id             String   @id @default(cuid())
+  type           String
+  question       String
+  options        String[]
+  correctIndex   Int?
+  expectedAnswer String?
+  imageUrl       String?
+  clue           String?
+  isSolved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  roomId         String
+  room           Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@map("puzzles")
+}
+
+model Hotspot {
+  id        String   @id @default(cuid())
+  x         Float
+  y         Float
+  width     Float    @default(50)
+  height    Float    @default(50)
+  puzzleId  String?
+  createdAt DateTime @default(now())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([puzzleId])
+  @@map("hotspots")
 }

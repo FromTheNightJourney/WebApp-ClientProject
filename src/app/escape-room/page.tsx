@@ -4,14 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
-/**
- * escape-room/page.tsx
- * Single-file Builder + Player (Option A)
- *
- * Notes:
- * - FIX APPLIED: Hotspot coordinate calculation in builder mode
- * - FIX: Correctly calculate click position relative to the actual displayed image
- */
+// Escape Room — Builder + Player (single-file). Cleaned up helpers and comments.
 
 /* =======================
    Types
@@ -38,6 +31,7 @@ type Hotspot = {
 type Settings = {
   globalMinutes: number;
   bgImageDataUrl?: string | null;
+  roomId?: string;
 };
 
 type ImageDimensions = {
@@ -176,6 +170,59 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
 };
 
 
+/* Small presentational helpers to reduce duplication */
+function BackgroundImage({ src, alt }: { src?: string | null; alt?: string }) {
+  if (!src) return null;
+  return (
+    <div className="absolute inset-0">
+      <Image src={src} alt={alt ?? "background"} fill style={{ objectFit: "contain" }} unoptimized />
+    </div>
+  );
+}
+
+function HotspotDot({ 
+  left, 
+  top, 
+  solved, 
+  mode, 
+  onPointerDown, 
+  onClick 
+}: {
+  left: string;
+  top: string;
+  solved?: boolean;
+  mode: "builder" | "play";
+  // Update types to be specific to HTMLDivElement
+  onPointerDown?: (ev: React.PointerEvent<HTMLDivElement>) => void;
+  onClick?: (ev: React.MouseEvent<HTMLDivElement>) => void;
+}) {
+  const dotClass = solved 
+    ? "bg-green-500 ring-4 ring-green-300" 
+    : (mode === "play" ? "bg-blue-500 ring-4 ring-blue-300" : "bg-white ring-2 ring-slate-800");
+
+  return (
+    <div
+      data-hotspot="true"
+      onPointerDown={onPointerDown}
+      onClick={(ev) => { 
+        ev.stopPropagation(); 
+        // No casting needed now; types match
+        if (onClick) onClick(ev); 
+      }}
+      style={{ 
+        position: "absolute", 
+        left, 
+        top, 
+        transform: "translate(-50%, -50%)", 
+        cursor: mode === "builder" ? "grab" : "pointer", 
+        zIndex: 30 
+      }}
+    >
+      <div className={`w-6 h-6 rounded-full ${dotClass} shadow-lg flex items-center justify-center`} />
+    </div>
+  );
+}
+
 /* Modal */
 const PuzzleModal = ({
   puzzle,
@@ -192,6 +239,7 @@ const PuzzleModal = ({
   const choiceRef = useRef<number | null>(null);
   const [, force] = useState(0);
   const update = () => force((x) => x + 1);
+  const [error, setError] = useState<string | null>(null);
 
   if (!puzzle) return null;
 
@@ -204,15 +252,16 @@ const PuzzleModal = ({
         onClick={onClose}
       />
       <div
-        className={`fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6 shadow-2xl transition-all duration-200 ${
+        className={`fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg p-6 shadow-2xl transition-all duration-200 ${
           open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
         }`}
         role="dialog"
+        style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
       >
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-semibold">Puzzle</h2>
-            <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{puzzle.question}</p>
+            <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>Puzzle</h2>
+            <p className="text-sm mt-2 whitespace-pre-wrap" style={{ color: "var(--foreground)" }}>{puzzle.question}</p>
             {puzzle.imageDataUrl && (
               <div className="mt-3 max-h-64 w-full rounded overflow-hidden">
                 <Image src={puzzle.imageDataUrl} alt={puzzle.question || "puzzle image"} width={800} height={450} unoptimized className="object-contain w-full h-auto" />
@@ -223,7 +272,7 @@ const PuzzleModal = ({
         </div>
 
         <div className="mt-4">
-          {puzzle.type === "mcq" ? (
+            {puzzle.type === "mcq" ? (
             <div className="space-y-2">
               {puzzle.options.map((opt, idx) => (
                 <label key={idx} className="flex items-center gap-2 p-2 border rounded cursor-pointer">
@@ -240,33 +289,37 @@ const PuzzleModal = ({
                 </label>
               ))}
             </div>
-          ) : (
+            ) : (
             <input
               defaultValue={textRef.current}
               onChange={(e) => (textRef.current = e.target.value)}
               className="w-full p-2 border rounded"
               placeholder="Type your answer..."
+              style={{ color: "var(--foreground)", backgroundColor: "var(--background)" }}
             />
           )}
         </div>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button className="border px-3 py-1 rounded" onClick={onClose}>Close</button>
-          <button
-            className="bg-emerald-600 text-white px-3 py-1 rounded"
-            onClick={() => {
-              const ok = onSubmit(puzzle.type === "mcq" ? choiceRef.current ?? -1 : textRef.current);
-              if (ok) {
-                alert("Correct!");
-                onClose();
-              } else {
-                alert("Incorrect — try again.");
-              }
-            }}
-          >
-            Submit
-          </button>
-        </div>
+          <div className="mt-4">
+            {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
+            <div className="flex justify-end gap-2">
+              <button className="border px-3 py-1 rounded" onClick={onClose}>Close</button>
+              <button
+                className="bg-emerald-600 text-white px-3 py-1 rounded"
+                onClick={() => {
+                  setError(null);
+                  const ok = onSubmit(puzzle.type === "mcq" ? choiceRef.current ?? -1 : textRef.current);
+                  if (ok) {
+                    onClose();
+                  } else {
+                    setError("Incorrect — try again.");
+                  }
+                }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
       </div>
     </>,
     document.body
@@ -674,6 +727,10 @@ export default function EscapeRoomPage() {
     setTimeout(() => setModalHotspotIndex(null), 200);
   };
 
+  // success popup state (in-app modal)
+  const [successPopup, setSuccessPopup] = useState<{ open: boolean; title?: string; message?: string }>({ open: false });
+
+
   const submitAnswerForHotspot = (hotspotIdx: number, answer: string | number) => {
     const hotspot = hotspots[hotspotIdx];
     if (!hotspot?.puzzleId) return false;
@@ -725,6 +782,26 @@ export default function EscapeRoomPage() {
     const top = `${h.yPct * dims.scaleFactorY + dims.offsetY}%`;
     return { left, top };
   };
+
+  // When all linked hotspots are completed during play, stop the timer and show final success popup
+  useEffect(() => {
+    if (mode !== "play") return;
+    if (!hotspots.length) return;
+
+    // Consider only hotspots that are linked to puzzles
+    const linkedIndexes = hotspots.map((h, i) => ({ linked: !!h.puzzleId, i })).filter(x => x.linked).map(x => x.i);
+    if (linkedIndexes.length === 0) return;
+
+    const allSolved = linkedIndexes.every((idx) => !!completed[idx]);
+    if (allSolved) {
+      // stop timer
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setSuccessPopup({ open: true, title: "You've successfully escaped!", message: "All puzzles solved — well done :D" });
+    }
+  }, [completed, hotspots, mode]);
 
   /* UI render */
   return (
@@ -1051,7 +1128,7 @@ export default function EscapeRoomPage() {
                 >
                   {/* background */}
                   {settings.bgImageDataUrl ? (
-                    <Image src={settings.bgImageDataUrl} alt="Background" fill style={{ objectFit: "contain" }} unoptimized />
+                    <BackgroundImage src={settings.bgImageDataUrl} alt="Background" />
                   ) : (
                     <div className="text-center text-gray-500">
                       <div className="text-lg mb-2">No background image</div>
@@ -1063,18 +1140,15 @@ export default function EscapeRoomPage() {
                   {hotspots.map((h, idx) => {
                     const { left, top } = getHotspotContainerPosition(h);
                     const solved = completed[idx];
-                    const dotClass = solved ? "bg-green-500 ring-4 ring-green-300" : "bg-white ring-2 ring-slate-800";
-
                     return (
-                      <div
+                      <HotspotDot
                         key={h.id}
-                        data-hotspot="true"
-                        onPointerDown={(ev) => {
-                          if (mode !== "builder") return;
-                          onHotspotPointerDown(ev, h.id);
-                        }}
-                        onClick={(ev) => {
-                          ev.stopPropagation();
+                        left={left}
+                        top={top}
+                        solved={solved}
+                        mode={mode}
+                        onPointerDown={(ev) => { if (mode === "builder") onHotspotPointerDown(ev, h.id); }}
+                        onClick={() => {
                           if (mode === "builder") {
                             const currentContainerXPct = h.xPct * imageDims.scaleFactorX + imageDims.offsetX;
                             const currentContainerYPct = h.yPct * imageDims.scaleFactorY + imageDims.offsetY;
@@ -1082,10 +1156,7 @@ export default function EscapeRoomPage() {
                             return;
                           }
                         }}
-                        style={{ position: "absolute", left, top, transform: "translate(-50%, -50%)", cursor: mode === "builder" ? "grab" : "pointer", zIndex: 30 }}
-                      >
-                        <div className={`w-6 h-6 rounded-full ${dotClass} shadow-lg flex items-center justify-center`} />
-                      </div>
+                      />
                     );
                   })}
 
@@ -1188,7 +1259,7 @@ export default function EscapeRoomPage() {
           <section className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div ref={imageContainerRef} className="relative w-full h-[70vh] rounded-lg overflow-hidden bg-gray-100">
               {settings.bgImageDataUrl ? (
-                <Image src={settings.bgImageDataUrl} alt="Background" fill style={{ objectFit: "contain" }} unoptimized />
+                <BackgroundImage src={settings.bgImageDataUrl} alt="Background" />
               ) : (
                 <div className="flex items-center justify-center h-full text-gray-500">
                   <div className="text-center">
@@ -1201,18 +1272,15 @@ export default function EscapeRoomPage() {
               {hotspots.map((h, idx) => {
                 const { left, top } = getHotspotContainerPosition(h);
                 const solved = completed[idx];
-                const dotClass = solved ? "bg-green-500 ring-4 ring-green-300" : "bg-blue-500 ring-4 ring-blue-300";
-
                 return (
-                  <div
+                  <HotspotDot
                     key={h.id}
-                    onClick={() => {
-                      openModalForHotspotIndex(idx);
-                    }}
-                    style={{ position: "absolute", left, top, transform: "translate(-50%, -50%)", cursor: "pointer", zIndex: 30 }}
-                  >
-                    <div className={`w-6 h-6 rounded-full ${dotClass} shadow-lg flex items-center justify-center`} />
-                  </div>
+                    left={left}
+                    top={top}
+                    solved={solved}
+                    mode="play"
+                    onClick={() => openModalForHotspotIndex(idx)}
+                  />
                 );
               })}
             </div>
@@ -1242,8 +1310,26 @@ export default function EscapeRoomPage() {
                 document.body
               );
             }
-            return <PuzzleModal puzzle={puzzle} open={modalOpen} onClose={closeModal} onSubmit={(ans) => submitAnswerForHotspot(modalHotspotIndex, ans)} />;
+            return <PuzzleModal puzzle={puzzle} open={modalOpen} onClose={closeModal} onSubmit={(ans) => {
+              const ok = submitAnswerForHotspot(modalHotspotIndex!, ans);
+              if (ok) {
+                setSuccessPopup({ open: true, title: "Puzzle solved", message: "Got it right!" });
+              }
+              return ok;
+            }} />;
           })()}
+          {successPopup.open && createPortal(
+            <>
+              <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setSuccessPopup({ open: false })} />
+              <div className="fixed left-1/2 top-1/2 z-60 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-2xl">
+                <h3 className="text-xl font-semibold mb-2">{successPopup.title ?? 'Success'}</h3>
+                <p className="text-gray-700 mb-4">{successPopup.message}</p>
+                <div className="text-right">
+                  <button className="px-4 py-2 bg-emerald-600 text-white rounded" onClick={() => setSuccessPopup({ open: false })}>OK</button>
+                </div>
+              </div>
+            </>, document.body
+          )}
         </div>
       )}
     </main>
