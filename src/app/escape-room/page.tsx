@@ -817,6 +817,37 @@ const handleCopyId = async () => {
     }
   };
 
+  const handleDeleteRoom = async () => {
+    if (!settings.roomId) return;
+
+    // user confirmation (obviously)
+    const confirmDelete = confirm(
+      "⚠️ ARE YOU SURE?\n\nThis will permanently delete this room and all its puzzles from the database.\nThis cannot be undone."
+    );
+    if (!confirmDelete) return;
+
+    try {
+      // call API
+      const res = await fetch(`/api/escape-room/delete?id=${settings.roomId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete");
+
+      alert("🗑️ Room deleted successfully.");
+      
+      // delete everything
+      setPuzzles([]);
+      setHotspots([]);
+      setSettings({ globalMinutes: 5, bgImageDataUrl: null, roomId: undefined });
+      window.history.pushState({}, "", window.location.pathname); // Remove ?id=... from URL
+
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error deleting room");
+    }
+  };
+
   const saveToServerStub = async () => {
     const roomName = prompt("Please enter a name for your room:", "Just An Escape Room");
     if (!roomName) return;
@@ -940,6 +971,16 @@ const handleCopyId = async () => {
   >
     💾 Save
   </button>
+
+  {/* Delete Button - Only show if saved in DB */}
+{settings.roomId && (
+  <button 
+    className="px-4 py-2 border border-red-200 text-red-700 bg-red-50 rounded-md text-sm font-medium hover:bg-red-100 transition-colors"
+    onClick={handleDeleteRoom}
+  >
+    🗑 Delete
+  </button>
+)}
   
   {/* clear all */}
   <button 
