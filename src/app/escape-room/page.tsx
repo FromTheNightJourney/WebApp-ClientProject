@@ -763,12 +763,36 @@ export default function EscapeRoomPage() {
 
   const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 
-  const preparePayload = () => ({ puzzles, hotspots, settings });
-
   const saveToServerStub = async () => {
-    // Replace with your API call later
-    console.log("Prepared payload", preparePayload());
-    alert("Payload prepared and logged to console. Replace with API call.");
+    const roomName = prompt("Enter a name for this room:", "My Escape Room");
+    if (!roomName) return;
+
+    try {
+      const payload = {
+        roomId: settings.roomId,
+        name: roomName,
+        settings: settings,
+        puzzles: puzzles,
+        hotspots: hotspots,
+      };
+
+      const res = await fetch("/api/escape-room/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error("Failed to save");
+
+      const data = await res.json();
+      
+      setSettings(prev => ({ ...prev, roomId: data.roomId }));
+      alert("✅ Saved successfully to Database!");
+      
+    } catch (e) {
+      console.error(e);
+      alert("❌ Error saving to database");
+    }
   };
 
   const getHotspotContainerPosition = (h: Hotspot) => {
@@ -783,12 +807,10 @@ export default function EscapeRoomPage() {
     return { left, top };
   };
 
-  // When all linked hotspots are completed during play, stop the timer and show final success popup
   useEffect(() => {
     if (mode !== "play") return;
     if (!hotspots.length) return;
 
-    // Consider only hotspots that are linked to puzzles
     const linkedIndexes = hotspots.map((h, i) => ({ linked: !!h.puzzleId, i })).filter(x => x.linked).map(x => x.i);
     if (linkedIndexes.length === 0) return;
 
