@@ -198,7 +198,7 @@ function HotspotDot({
 }) {
   const dotClass = solved 
     ? "bg-green-500 ring-4 ring-green-300" 
-    : (mode === "play" ? "bg-blue-500 ring-4 ring-blue-300" : "bg-white ring-2 ring-slate-800");
+    : (mode === "play" ? "bg-blue-500 ring-4 ring-blue-300" : "bg-background ring-2 ring-shade");
 
   return (
     <div
@@ -254,14 +254,13 @@ const PuzzleModal = ({
       <div
         className={`fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg p-6 shadow-2xl transition-all duration-200 ${
           open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
-        }`}
+        } bg-background text-primary`}
         role="dialog"
-        style={{ backgroundColor: "var(--background)", color: "var(--foreground)" }}
       >
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>Puzzle</h2>
-            <p className="text-sm mt-2 whitespace-pre-wrap" style={{ color: "var(--foreground)" }}>{puzzle.question}</p>
+            <h2 className="text-lg font-semibold">Puzzle</h2>
+            <p className="text-sm mt-2 whitespace-pre-wrap">{puzzle.question}</p>
             {puzzle.imageDataUrl && (
               <div className="mt-3 max-h-64 w-full rounded overflow-hidden">
                 <Image src={puzzle.imageDataUrl} alt={puzzle.question || "puzzle image"} width={800} height={450} unoptimized className="object-contain w-full h-auto" />
@@ -416,7 +415,7 @@ const PuzzleCard = ({
   isLinked: boolean;
 }) => {
   return (
-    <div className={`p-4 border rounded-lg bg-white shadow-sm hover:shadow-md transition-shadow ${isLinked ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
+    <div className={`p-4 border rounded-lg bg-hover shadow-sm hover:shadow-md transition-shadow ${isLinked ? 'border-green-200 bg-green-50' : 'border-shade'}`}>
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-2">
           <span className="flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
@@ -436,14 +435,14 @@ const PuzzleCard = ({
         <div className="flex gap-1">
           <button 
             onClick={() => onEdit(puzzle.id)}
-            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            className="p-1 text-primary/70 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             title="Edit puzzle"
           >
             ✎
           </button>
           <button 
             onClick={() => onDelete(puzzle.id)}
-            className="p-1 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+            className="p-1 text-primary/70 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
             title="Delete puzzle"
           >
             🗑
@@ -451,21 +450,21 @@ const PuzzleCard = ({
         </div>
       </div>
       
-      <p className="text-sm text-gray-800 font-medium mb-2 line-clamp-2">{puzzle.question}</p>
+      <p className="text-sm text-primary font-medium mb-2 line-clamp-2">{puzzle.question}</p>
       
       {puzzle.type === 'mcq' ? (
-        <div className="text-xs text-gray-600 space-y-1">
+        <div className="text-xs text-primary/70 space-y-1">
           <div><span className="font-medium">Options:</span> {puzzle.options.length}</div>
           <div><span className="font-medium">Correct:</span> Option {puzzle.correctIndex !== null ? puzzle.correctIndex + 1 : 'N/A'}</div>
         </div>
       ) : (
-        <div className="text-xs text-gray-600">
+        <div className="text-xs text-primary/70">
           <div><span className="font-medium">Answer:</span> {puzzle.expectedAnswer}</div>
         </div>
       )}
       
       {puzzle.imageDataUrl && (
-        <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+        <div className="mt-2 text-xs text-primary/70 flex items-center gap-1">
           <span>🖼️ Has image</span>
         </div>
       )}
@@ -914,21 +913,21 @@ const handleCopyId = async () => {
 
   /* UI render */
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-primary">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="bg-hover border-b border-shade sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Escape Room Builder</h1>
-              <p className="text-sm text-gray-600 mt-1">Create and test interactive escape room experiences</p>
+              <h1 className="text-2xl font-bold text-primary">Escape Room Builder</h1>
+              <p className="text-sm text-primary/70 mt-1">Create and test interactive escape room experiences</p>
             </div>
             
             <div className="flex items-center gap-3">
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-hover rounded-lg p-1">
                 <button 
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    mode === "builder" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                    mode === "builder" ? "bg-button text-primary shadow-sm" : "text-primary/70 hover:text-primary"
                   }`}
                   onClick={() => setMode("builder")}
                 >
@@ -936,7 +935,7 @@ const handleCopyId = async () => {
                 </button>
                 <button 
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    mode === "play" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                    mode === "play" ? "bg-button text-primary shadow-sm" : "text-primary/70 hover:text-primary"
                   }`}
                   onClick={() => setMode("play")}
                 >
@@ -1006,23 +1005,23 @@ const handleCopyId = async () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Stats Bar */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="text-2xl font-bold text-gray-900">{puzzles.length}</div>
-              <div className="text-sm text-gray-600">Total Puzzles</div>
+            <div className="bg-hover rounded-lg p-4 shadow-sm border border-shade">
+              <div className="text-2xl font-bold text-primary">{puzzles.length}</div>
+              <div className="text-sm text-primary/70">Total Puzzles</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="text-2xl font-bold text-gray-900">{hotspots.length}</div>
-              <div className="text-sm text-gray-600">Hotspots</div>
+            <div className="bg-hover rounded-lg p-4 shadow-sm border border-shade">
+              <div className="text-2xl font-bold text-primary">{hotspots.length}</div>
+              <div className="text-sm text-primary/70">Hotspots</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-hover rounded-lg p-4 shadow-sm border border-shade">
+              <div className="text-2xl font-bold text-primary">
                 {puzzles.filter(p => isPuzzleLinked(p.id)).length}
               </div>
-              <div className="text-sm text-gray-600">Linked Puzzles</div>
+              <div className="text-sm text-primary/70">Linked Puzzles</div>
             </div>
-            <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-              <div className="text-2xl font-bold text-gray-900">{settings.globalMinutes}m</div>
-              <div className="text-sm text-gray-600">Time Limit</div>
+            <div className="bg-hover rounded-lg p-4 shadow-sm border border-shade">
+              <div className="text-2xl font-bold text-primary">{settings.globalMinutes}m</div>
+              <div className="text-sm text-primary/70">Time Limit</div>
             </div>
           </div>
 
@@ -1030,8 +1029,8 @@ const handleCopyId = async () => {
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-6">
               {/* Tabs */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div className="flex border-b border-gray-200">
+              <div className="bg-hover rounded-lg shadow-sm border border-shade">
+                <div className="flex border-b border-shade">
                   <button
                     className={`flex-1 py-3 px-4 text-sm font-medium text-center ${
                       activeTab === "puzzles" 
@@ -1169,7 +1168,7 @@ const handleCopyId = async () => {
                             {editingId && (
                               <button 
                                 onClick={resetForm}
-                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
+                                className="px-4 py-2 bg-hover text-primary/70 rounded-md hover:bg-shade transition-colors font-medium"
                               >
                                 Cancel
                               </button>
@@ -1180,10 +1179,10 @@ const handleCopyId = async () => {
 
                       {/* puzzles */}
                       <div>
-                        <h3 className="font-semibold text-gray-900 mb-3">All Puzzles</h3>
+                        <h3 className="font-semibold text-primary mb-3">All Puzzles</h3>
                         <div className="space-y-3 max-h-96 overflow-y-auto">
                           {puzzles.length === 0 ? (
-                            <div className="text-center py-8 text-gray-500">
+                            <div className="text-center py-8 text-primary/70">
                               <div className="text-lg mb-2">No puzzles yet</div>
                               <div className="text-sm">Create your first puzzle above</div>
                             </div>
@@ -1433,18 +1432,18 @@ const handleCopyId = async () => {
               return createPortal(
                 <>
                   <div className="fixed inset-0 z-40 bg-black/40" onClick={closeModal} />
-                  <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-xl">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Puzzle Assigned</h3>
-                    <p className="text-gray-600 mb-4">This hotspot is not linked to a puzzle. Return to Builder to assign one.</p>
-                    <div className="text-right">
-                      <button 
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium"
-                        onClick={closeModal}
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
+                      <div className="fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-background text-primary p-6 rounded-lg shadow-xl">
+                        <h3 className="text-lg font-semibold text-primary mb-2">No Puzzle Assigned</h3>
+                        <p className="text-primary/70 mb-4">This hotspot is not linked to a puzzle. Return to Builder to assign one.</p>
+                        <div className="text-right">
+                          <button 
+                            className="px-4 py-2 bg-hover text-primary/70 rounded-md hover:bg-shade transition-colors font-medium"
+                            onClick={closeModal}
+                          >
+                            Close
+                          </button>
+                        </div>
+                      </div>
                 </>,
                 document.body
               );
@@ -1460,9 +1459,9 @@ const handleCopyId = async () => {
           {successPopup.open && createPortal(
             <>
               <div className="fixed inset-0 z-50 bg-black/40" onClick={() => setSuccessPopup({ open: false })} />
-              <div className="fixed left-1/2 top-1/2 z-60 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-2xl">
+              <div className="fixed left-1/2 top-1/2 z-60 w-full max-w-md -translate-x-1/2 -translate-y-1/2 bg-background text-primary p-6 rounded-lg shadow-2xl">
                 <h3 className="text-xl font-semibold mb-2">{successPopup.title ?? 'Success'}</h3>
-                <p className="text-gray-700 mb-4">{successPopup.message}</p>
+                <p className="text-primary/70 mb-4">{successPopup.message}</p>
                 <div className="text-right">
                   <button className="px-4 py-2 bg-emerald-600 text-white rounded" onClick={() => setSuccessPopup({ open: false })}>OK</button>
                 </div>
