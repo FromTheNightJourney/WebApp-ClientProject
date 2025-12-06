@@ -10,9 +10,7 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    // Delete the room.
-    // Thanks to @relation(onDelete: Cascade) in your schema,
-    // this automatically deletes all related Puzzles and Hotspots too.
+
     await prisma.room.delete({
       where: { id: id },
     });

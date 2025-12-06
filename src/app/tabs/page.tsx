@@ -197,10 +197,10 @@ export default function TabsGeneratorPage() {
     );
   };
 
-// New "Lambda" version
+// lambda requirement
   const generateExportHtml = async () => {
     try {
-      // 1. Send the tab data to your new Lambda API
+      // send tab data to lambda api
       const response = await fetch("/api/generate-tabs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -209,11 +209,11 @@ export default function TabsGeneratorPage() {
 
       if (!response.ok) throw new Error("Failed to generate tabs");
 
-      // 2. The API returns the finished HTML string
+      // api returns
       const htmlContent = await response.text();
-      setExportableHtml(htmlContent); // Update the preview box
+      setExportableHtml(htmlContent); 
 
-      // 3. Download the file (Standard browser download logic)
+      // file download
       const blob = new Blob([htmlContent], { type: 'text/html' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);

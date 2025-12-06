@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-// 1. Define the Type (Fixes the 'any' error)
+// type definition
 interface TabItem {
   id: number;
   title: string;
@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid data provided" }, { status: 400 });
     }
 
-    // === 2. Define Styles ===
+    // style definition
     const s = {
       body: `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px;`,
       container: `max-width: 800px; margin: 0 auto;`,
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
       tabPanel: `display: none; padding: 20px; border: 1px solid #d1d5db; background-color: #fff; border-radius: 0 6px 6px 6px;`,
     };
 
-    // === 3. Define Client-Side Script ===
+    // client-side script
     const scripts = `
       document.addEventListener('DOMContentLoaded', function() {
         const tabs = document.querySelectorAll('button[data-target]');
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       });
     `;
 
-    // === 4. Construct HTML (Using strict types now) ===
+    // html maker
     const finalHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
