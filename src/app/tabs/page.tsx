@@ -197,81 +197,36 @@ export default function TabsGeneratorPage() {
     );
   };
 
-  const generateExportHtml = () => {
-    const s = {
-      body: `font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; padding: 20px;`,
-      container: `max-width: 800px; margin: 0 auto;`,
-      nav: `display: flex; border-bottom: 1px solid #d1d5db;`,
-      tabLink: `padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; background-color: #e5e7eb; font-size: 16px; margin-right: 2px; border-radius: 6px 6px 0 0;`,
-      tabPanel: `display: none; padding: 20px; border: 1px solid #d1d5db; background-color: #fff; border-radius: 0 6px 6px 6px;`,
-    };
-
-    const scripts = `
-      document.addEventListener('DOMContentLoaded', function() {
-        const tabs = document.querySelectorAll('button[data-target]');
-        const tabPanels = document.querySelectorAll('div[data-panel]');
-
-        const inactiveTabStyle = 'background-color: #e5e7eb; border-color: transparent;';
-        const activeTabStyle = 'background-color: #fff; border-color: #d1d5db; border-bottom-color: #fff; position: relative; top: 1px;';
-
-        function switchTab(clickedTab) {
-          tabPanels.forEach(panel => {
-            panel.style.display = 'none';
-          });
-          tabs.forEach(tab => {
-            tab.setAttribute('style', '${s.tabLink}' + inactiveTabStyle);
-          });
-
-          const targetPanelId = clickedTab.getAttribute('data-target');
-          const targetPanel = document.getElementById(targetPanelId);
-          
-          if (targetPanel) {
-            clickedTab.setAttribute('style', '${s.tabLink}' + activeTabStyle);
-            targetPanel.style.display = 'block';
-          }
-        }
-
-        tabs.forEach(tab => {
-          tab.addEventListener('click', function() {
-            switchTab(this);
-          });
-        });
-
-        if (tabs.length > 0) {
-          switchTab(tabs[0]);
-        }
+// New "Lambda" version
+  const generateExportHtml = async () => {
+    try {
+      // 1. Send the tab data to your new Lambda API
+      const response = await fetch("/api/generate-tabs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tabItems }),
       });
-    `;
 
-    const finalHtml = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generated Tabs</title>
-</head>
-<body style="${s.body}">
-  <div style="${s.container}">
-    <div style="${s.nav}">
-      ${tabItems.map(tab => `<button data-target="panel-${tab.id}" style="${s.tabLink}">${tab.title}</button>`).join('')}
-    </div>
-    ${tabItems.map(tab => `<div id="panel-${tab.id}" data-panel="true" style="${s.tabPanel}">${tab.content}</div>`).join('')}
-  </div>
-  <script>
-    ${scripts}
-  </script>
-</body>
-</html>`;
+      if (!response.ok) throw new Error("Failed to generate tabs");
 
-    setExportableHtml(finalHtml);
-    const blob = new Blob([finalHtml], { type: 'text/html' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'tabs.html';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+      // 2. The API returns the finished HTML string
+      const htmlContent = await response.text();
+      setExportableHtml(htmlContent); // Update the preview box
+
+      // 3. Download the file (Standard browser download logic)
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'tabs.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+    } catch (error) {
+      console.error("Lambda Error:", error);
+      alert("❌ Error: Could not generate tabs via the server.");
+    }
   };
 
   const copyHtmlToClipboard = () => {
@@ -421,7 +376,7 @@ export default function TabsGeneratorPage() {
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50" onClick={closeModal}>
           <div className="bg-background text-primary p-8 rounded-lg shadow-xl text-center" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-2xl font-bold mb-4">Confirm Deletion</h2>
-            <p className="mb-6">Are you sure you want to delete the tab "{modalState.tab.title}"?</p>
+            <p className="mb-6">Are you sure you want to delete the tab &quot;{modalState.tab.title}&quot;?</p>
             <div className="flex justify-center space-x-4">
               <button onClick={closeModal} className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">Cancel</button>
               <button onClick={() => handleRemoveTab(modalState.tab!.id)} disabled={tabItems.length <= 1} className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 disabled:opacity-50">Delete</button>
