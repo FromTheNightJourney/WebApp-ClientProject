@@ -5,6 +5,20 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import Cookies from 'js-cookie';
 
+// FIX: Move constant data OUTSIDE the component.
+// Now this array is created once when the file loads, not on every render.
+const navLinks = [
+  { name: "Tabs", href: "/tabs" },
+  { name: "Pre-lab Questions", href: "/prelab" },
+  { name: "Escape Room", href: "/escape-room" },
+  { name: "Coding Races", href: "/coding-races" },
+];
+
+const allNavLinks = [
+  ...navLinks,
+  { name: "About", href: "/about" },
+];
+
 export default function Header() {
   const pathname = usePathname();
   
@@ -12,27 +26,15 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false); 
   const menuRef = useRef<HTMLDivElement>(null); 
 
-  const navLinks = [
-    { name: "Tabs", href: "/tabs" },
-    { name: "Pre-lab Questions", href: "/prelab" },
-    { name: "Escape Room", href: "/escape-room" },
-    { name: "Coding Races", href: "/coding-races" },
-  ];
-  
-  const allNavLinks = [
-    ...navLinks,
-    { name: "About", href: "/about" },
-  ];
-
-  // effect: save last page to cookie
+  // save last page to cookie
   useEffect(() => {
     const isMainNavLink = navLinks.some(link => link.href === pathname);
     if (isMainNavLink) {
       Cookies.set('lastvisitedpage', pathname, { expires: 365 });
     }
-  }, [pathname, navLinks]); // runs when path changes
+  }, [pathname]); 
 
-  // effect: check localstorage/system for theme on load
+  // check localstorage/system for theme on load
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -45,7 +47,7 @@ export default function Header() {
     }
   }, []);
 
-  // func: handles theme toggle click
+  // handle theme toggle clicker
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
@@ -59,7 +61,7 @@ export default function Header() {
     }
   };
 
-  // effect: click outside menu closes it
+  // click out menu to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -72,7 +74,6 @@ export default function Header() {
     };
   }, [menuRef]);
 
-  // i head the render head renderer
   return (
     <header className="sticky top-0 z-50 bg-five text-two p-4 border-b-3 border-one">
       {/* top part: title & id */}
@@ -91,7 +92,6 @@ export default function Header() {
             <div key={link.name} className="flex items-center">
               <Link
                 href={link.href}
-                // active link style logic
                 className={`
                   py-1 border-b-2 transition-colors duration-300
                   ${pathname === link.href
