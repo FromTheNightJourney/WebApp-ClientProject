@@ -25,13 +25,13 @@ export async function GET(req: Request) {
     // map room settings
     const settings = {
       globalMinutes: room.globalMinutes,
-      bgImageDataUrl: room.imageUrl, // Map DB 'imageUrl' -> Frontend 'bgImageDataUrl'
+      bgImageDataUrl: room.imageUrl,
       roomId: room.id,
     };
 
     // map puzzles
     const puzzles = room.puzzles.map((p) => ({
-      id: p.id, // Keep the DB ID so we can update it later
+      id: p.id, 
       type: p.type as "short" | "mcq",
       question: p.question,
       options: p.options,
