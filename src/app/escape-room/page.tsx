@@ -4,11 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 
-// Escape Room — Builder + Player (single-file). Cleaned up helpers and comments.
 
-/* =======================
-   Types
-   ======================= */
 type PuzzleType = "short" | "mcq";
 
 type Puzzle = {
@@ -169,8 +165,6 @@ const useImageDimensions = (containerRef: React.RefObject<HTMLDivElement | null>
   return dims;
 };
 
-
-/* Small presentational helpers to reduce duplication */
 function BackgroundImage({ src, alt }: { src?: string | null; alt?: string }) {
   if (!src) return null;
   return (
@@ -192,7 +186,7 @@ function HotspotDot({
   top: string;
   solved?: boolean;
   mode: "builder" | "play";
-  // Update types to be specific to HTMLDivElement
+  // did use AI for debugging here
   onPointerDown?: (ev: React.PointerEvent<HTMLDivElement>) => void;
   onClick?: (ev: React.MouseEvent<HTMLDivElement>) => void;
 }) {
@@ -206,7 +200,6 @@ function HotspotDot({
       onPointerDown={onPointerDown}
       onClick={(ev) => { 
         ev.stopPropagation(); 
-        // No casting needed now; types match
         if (onClick) onClick(ev); 
       }}
       style={{ 
@@ -504,7 +497,6 @@ export default function EscapeRoomPage() {
 
 useEffect(() => {
     const loadFromDatabase = async () => {
-      // 1. Check URL for ID (e.g. ?id=clq...)
       const params = new URLSearchParams(window.location.search);
       const urlId = params.get("id");
 
@@ -514,21 +506,20 @@ useEffect(() => {
           const res = await fetch(`/api/escape-room/load?id=${urlId}`);
           
           if (!res.ok) {
-            if (res.status === 404) alert("Room not found in database.");
+            if (res.status === 404) alert("Unfortunately, unable to find room.");
             throw new Error("Failed to load");
           }
 
           const data = await res.json();
 
-          // 2. Overwrite state with Database data
           setPuzzles(data.puzzles);
           setHotspots(data.hotspots);
           setSettings({
             ...data.settings,
-            roomId: urlId // Save ID so "Save" button updates this room instead of creating new
+            roomId: urlId 
           });
           
-          console.log("✅ Successfully loaded from Database");
+          console.log("The room has been successfully loaded!");
         } catch (e) {
           console.error("Load error:", e);
         }
@@ -591,12 +582,12 @@ useEffect(() => {
     });
 
   const addOrUpdatePuzzle = async () => {
-    if (!formQuestion.trim()) return alert("Question required");
+    if (!formQuestion.trim()) return alert("A question is required here.");
     if (formType === "mcq") {
-      if (formOptions.filter((o) => o.trim() !== "").length < 2) return alert("MCQ needs 2+ options");
-      if (formCorrectIndex === null || !formOptions[formCorrectIndex]?.trim()) return alert("Select correct option");
+      if (formOptions.filter((o) => o.trim() !== "").length < 2) return alert("The MCQ needs 2+ options. That's what makes it 'multiple choice'.");
+      if (formCorrectIndex === null || !formOptions[formCorrectIndex]?.trim()) return alert("Please choose the right option.");
     } else {
-      if (!formExpectedAnswer.trim()) return alert("Expected answer required");
+      if (!formExpectedAnswer.trim()) return alert("Expected answer required.");
     }
 
     let dataUrl: string | undefined = undefined;
@@ -802,16 +793,15 @@ const handleCopyId = async () => {
     if (!settings.roomId) return;
     try {
       await navigator.clipboard.writeText(settings.roomId);
-      alert("✅ Room ID copied to clipboard!");
+      alert("The Room ID has been copied to your clipboard.");
     } catch (err) {
       console.error("Failed to copy:", err);
     }
   };
 
   const handleLoadRoom = () => {
-    const id = prompt("Enter the Room ID you want to load:");
+    const id = prompt("Enter the ID of the room you want to load:");
     if (id && id.trim()) {
-      // Force a real page reload to ensure a clean state
       window.location.href = `/escape-room?id=${id.trim()}`;
     }
   };
@@ -871,11 +861,11 @@ const handleCopyId = async () => {
       const data = await res.json();
       
       setSettings(prev => ({ ...prev, roomId: data.roomId }));
-      alert("✅ Got it! Successfully to Database!");
+      alert("The room has been saved successfully. Your Room ID is: " + data.roomId);
       
     } catch (e) {
       console.error(e);
-      alert("❌ Error! Couldn't save to the database");
+      alert("Something went wrong. Couldn't save to the database.");
     }
   };
 

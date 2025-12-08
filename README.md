@@ -41,4 +41,3 @@ The current functionality of the web application at the moment includes:
  5. Click generate to make the output.
  6. It automatically downloads the HTML file.
  7. Copy the code if required.
-  
